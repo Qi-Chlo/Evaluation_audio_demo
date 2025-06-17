@@ -3,264 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>语音模型回复评估</title>
+    <title>语音模型多轮评估</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- 顶部任务栏 -->
     <header class="task-bar">
         <div class="task-info">
             <span><strong>Task ID:</strong> 1a2b3c-4d5e</span>
             <span><strong>Project ID:</strong> P-AudioEval-001</span>
         </div>
-        <div class="timer-container">
-            <span><strong>剩余时长:</strong> <span id="timer">30:00</span></span>
-        </div>
-            <button type="submit" form="evaluation-form" id="submit-task-btn">提交任务</button>
+        <div class="header-actions">
+            <div class="timer-container">
+                <span><strong>剩余时长:</strong> <span id="timer">30:00</span></span>
+            </div>
+            <button type="button" id="submit-task-btn">提交所有评估</button>
         </div>
     </header>
 
     <main class="container">
-        <!-- 卡片1: 对话内容 -->
+        <!-- 静态信息卡片 -->
         <div class="card">
             <h2>对话内容 (Conversation Context)</h2>
-            <div class="chat-log">
-                <div class="chat-bubble user">
-                    <p>阿塞，吃甜的果然能解决我心情不好的问题</p>
-                    <!-- 1. 如何插入图片 -->
-                    <!-- 将你的图片(例如 dessert.jpg) 放到 images 文件夹下 -->
-                    <!-- 然后使用下面的 <img> 标签，修改 src 路径即可 -->
-                    <img src="images/dessert.jpg" alt="用户分享的甜品图片">
-                </div>
-                <div class="chat-bubble model-persona">
-                    <p>好吃吗？看起来摆盘好精致。</p>
-                </div>
-                <div class="chat-bubble user">
-                    <p>最好吃的是蛋糕，中间的凉拌魔芋丝也好吃。被渣男渣了的心被修复了6%。</p>
-                </div>
+            <div id="conversation-log" class="chat-log">
+                <div class="chat-bubble user"><p>阿塞，吃甜的果然能解决我心情不好的问题</p><img src="images/dessert.jpg" alt="用户分享的甜品图片"></div>
+                <div class="chat-bubble model-persona"><p>好吃吗？看起来摆盘好精致。</p></div>
+                <div class="chat-bubble user"><p>最好吃的是蛋糕，中间的凉拌魔芋丝也好吃。被渣男渣了的心被修复了6%。</p></div>
             </div>
         </div>
-
-        <!-- 卡片2: 任务变量 -->
-        <div class="card">
-            <h2>任务变量 (Task Variables)</h2>
-            <div class="task-variables">
-                <p><strong>人设选型:</strong> <span>阿塞</span></p>
-                <p><strong>是否涉及次轮对话:</strong> <span>是</span></p>
-                <p><strong>次轮对话难度:</strong> <span>中</span></p>
-                <p><strong>次轮对话情感深度:</strong> <span>激化</span></p>
-                <p>项目文档：https://docs.google.com/document/d/e/2PACX-1vTnvEHerJsAbmqALCuDKRx2vxxVxCDrl6sO--1Nh3e0Ku_Gqwx98MOaOxq7gdVa2zIk2OaowHeNhm6_/pub</p>
-            </div>
-        </div>
-
-        <div class="card persona-card">
-             <h2>人设介绍 (Persona Introduction)</h2>
-             <p>阿塞是一名善良热情的阳光学弟，他对用户很有好感并常常给出暧昧互动暗示。他喜欢通过多段短语音回复用户。他常常先肯定用户的感受，再决定是否要给用户提出生活建议。</p>
-        </div>
+        <!-- (任务变量和人设卡片) -->
+        <div class="card"><div class="task-variables"><p><strong>人设选型:</strong> <span>阿塞</span></p><p><strong>是否涉及次轮对话:</strong> <span>是</span></p><p><strong>次轮对话难度:</strong> <span>中</span></p><p><strong>次轮对话情感深度:</strong> <span>激化</span></p></div></div>
+        <div class="card persona-card"><p>阿塞是一名善良热情的阳光学弟，他对用户很有好感并常常给出暧昧互动暗示。他喜欢通过多段短语音回复用户。他常常先肯定用户的感受，再决定是否要给用户提出生活建议。</p></div>
 
 
-        <!-- 卡片3: Side-by-Side 评估 -->
-        <div class="card">
-            <h2>模型回复评估 (Model Responses)</h2>
-            <form id="evaluation-form">
-                <div class="side-by-side-container">
-                    <!-- ==================== 模型 A ==================== -->
-                    <div class="model-panel">
-                        <h3>模型 A</h3>
-                        <div class="audio-clips">
-                            <p class="audio-label">回复 1:</p>
-                            <audio controls src="audio/model_a/response_1.mp3">浏览器不支持</audio>
-                            <p class="audio-label">回复 2:</p>
-                            <audio controls src="audio/model_a/response_2.mp3">浏览器不支持</audio>
-                            <p class="audio-label">回复 3:</p>
-                            <audio controls src="audio/model_a/response_3.mp3">浏览器不支持</audio>
+        <!-- ==================== 评估轮次主容器 ==================== -->
+        <div id="evaluation-rounds-container">
+            
+            <!-- 第 1 轮评估 (静态内容，直接可见) -->
+            <div class="evaluation-round" id="round-1">
+                <div class="card">
+                    <h2 class="round-title">模型回复评估 (第 1 轮)</h2>
+                    <div class="side-by-side-container">
+                        <!-- 模型 A -->
+                        <div class="model-panel">
+                            <h3>模型 A</h3>
+                            <div class="audio-clips">
+                                <p class="audio-label">回复 1:</p><audio controls src="audio/model_a/response_1.mp3"></audio>
+                                <p class="audio-label">回复 2:</p><audio controls src="audio/model_a/response_2.mp3"></audio>
+                                <p class="audio-label">回复 3:</p><audio controls src="audio/model_a/response_3.mp3"></audio>
+                            </div>
+                            <p class="transcript-text" style="display:none;">蛋糕少吃点，对身体不好，魔芋丝没有什么热量，我健身的时候常吃。你吃好了就行，渣男的事情会过去的。</p>
+                            <!-- 修正点 1: 移除了多余的嵌套div -->
+                            <div class="evaluation-questions">
+                                <div class="question-group"><h4>内容人设遵循</h4><p class="description">模型是否在内容上能够遵循人物设定？参见文档中人物详细设定介绍。</p><div class="radio-options"><label><input type="radio" name="model_a_content_persona_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_content_persona_r1" value="2"> 还行</label><label><input type="radio" name="model_a_content_persona_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容上下文遵循</h4><p class="description">模型是否能够遵循上下文做出与上下文内容不违背的回复？</p><div class="radio-options"><label><input type="radio" name="model_a_context_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_context_r1" value="2"> 还行</label><label><input type="radio" name="model_a_context_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容理解</h4><p class="description">模型是否能够正确理解用户表达的内容？</p><div class="radio-options"><label><input type="radio" name="model_a_understanding_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_understanding_r1" value="2"> 还行</label><label><input type="radio" name="model_a_understanding_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容满意度</h4><p class="description">模型是否提供了用户可能需要的情感支持？</p><div class="radio-options"><label><input type="radio" name="model_a_satisfaction_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_satisfaction_r1" value="2"> 还行</label><label><input type="radio" name="model_a_satisfaction_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>声音质量</h4><p class="description">模型语音是否清晰可辨？</p><div class="radio-options"><label><input type="radio" name="model_a_quality_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_quality_r1" value="2"> 还行</label><label><input type="radio" name="model_a_quality_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>语音语调</h4><p class="description">模型语音是否符合发音标准自然的要求？</p><div class="radio-options"><label><input type="radio" name="model_a_tone_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_tone_r1" value="2"> 还行</label><label><input type="radio" name="model_a_tone_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>非内容人设遵循</h4><p class="description">模型是否在非内容方面遵循了人物设定？参见文档中人物详细设定介绍。</p><div class="radio-options"><label><input type="radio" name="model_a_non_content_persona_r1" value="1" required> 不能</label><label><input type="radio" name="model_a_non_content_persona_r1" value="2"> 还行</label><label><input type="radio" name="model_a_non_content_persona_r1" value="3"> 完美</label></div></div>
+                            </div>
                         </div>
                         
-                        <!-- 详细评估问题 -->
-                        <div class="evaluation-questions">
-                            <div class="question-group">
-                                <h4>内容人设遵循</h4>
-                                <p class="description">模型是否在内容上能够遵循人物设定？参见文档中人物详细设定介绍。</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_content_persona" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_content_persona" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_content_persona" value="3"> 完美</label>
-                                </div>
+                        <!-- 修正点 2: 将模型B移出模型A，作为其兄弟元素 -->
+                        <div class="model-panel">
+                            <h3>模型 B</h3>
+                            <div class="audio-clips">
+                                <p class="audio-label">回复 1:</p><audio controls src="audio/model_b/response_1.mp3"></audio>
                             </div>
-                            <div class="question-group">
-                                <h4>内容上下文遵循</h4>
-                                <p class="description">模型是否能够遵循上下文做出与上下文内容不违背的回复？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_context" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_context" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_context" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>内容理解</h4>
-                                <p class="description">模型是否能够正确理解用户表达的内容？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_understanding" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_understanding" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_understanding" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>内容满意度</h4>
-                                <p class="description">模型是否提供了用户可能需要的情感支持？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_satisfaction" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_satisfaction" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_satisfaction" value="3"> 完美</label>
-                                </div>
-                            </div>
-                            <div class="question-group">
-                                <h4>声音质量</h4>
-                                <p class="description">模型语音是否清晰可辨？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_quality" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_quality" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_quality" value="3"> 完美</label>
-                                </div>
-                            </div>
-                            <div class="question-group">
-                                <h4>语音语调</h4>
-                                <p class="description">模型语音是否符合发音标准自然的要求？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_tone" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_tone" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_tone" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>非内容人设遵循</h4>
-                                <p class="description">模型是否在非内容方面遵循了人物设定？参见文档中人物详细设定介绍。</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_a_non_content_persona" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_a_non_content_persona" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_a_non_content_persona" value="3"> 完美</label>
-                                </div>
+                            <p class="transcript-text" style="display:none;">真的吗？哪个渣男敢渣我们的宝贝？（停顿笑）不过，我们宝贝伤心的时候有蛋糕吃真是太好了，要不要考虑为了我，再多修复百分之一的小心脏呢？</p>
+                            <div class="evaluation-questions">
+                                <div class="question-group"><h4>内容人设遵循</h4><p class="description">模型是否在内容上能够遵循人物设定？参见文档中人物详细设定介绍。</p><div class="radio-options"><label><input type="radio" name="model_b_content_persona_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_content_persona_r1" value="2"> 还行</label><label><input type="radio" name="model_b_content_persona_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容上下文遵循</h4><p class="description">模型是否能够遵循上下文做出与上下文内容不违背的回复？</p><div class="radio-options"><label><input type="radio" name="model_b_context_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_context_r1" value="2"> 还行</label><label><input type="radio" name="model_b_context_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容理解</h4><p class="description">模型是否能够正确理解用户表达的内容？</p><div class="radio-options"><label><input type="radio" name="model_b_understanding_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_understanding_r1" value="2"> 还行</label><label><input type="radio" name="model_b_understanding_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>内容满意度</h4><p class="description">模型是否提供了用户可能需要的情感支持？</p><div class="radio-options"><label><input type="radio" name="model_b_satisfaction_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_satisfaction_r1" value="2"> 还行</label><label><input type="radio" name="model_b_satisfaction_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>声音质量</h4><p class="description">模型语音是否清晰可辨？</p><div class="radio-options"><label><input type="radio" name="model_b_quality_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_quality_r1" value="2"> 还行</label><label><input type="radio" name="model_b_quality_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>语音语调</h4><p class="description">模型语音是否符合发音标准自然的要求？</p><div class="radio-options"><label><input type="radio" name="model_b_tone_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_tone_r1" value="2"> 还行</label><label><input type="radio" name="model_b_tone_r1" value="3"> 完美</label></div></div>
+                                <div class="question-group"><h4>非内容人设遵循</h4><p class="description">模型是否在非内容方面遵循了人物设定？参见文档中人物详细设定介绍。</p><div class="radio-options"><label><input type="radio" name="model_b_non_content_persona_r1" value="1" required> 不能</label><label><input type="radio" name="model_b_non_content_persona_r1" value="2"> 还行</label><label><input type="radio" name="model_b_non_content_persona_r1" value="3"> 完美</label></div></div>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- 修正点 3: 将表单部分移到 side-by-side 容器外部 -->
+                    <div class="form-sections">
+                        <div class="final-rating-section">
+                            <h4>综合来看，你更喜欢哪个模型的回复？</h4>
+                            <div class="likert-scale">
+                                <span class="likert-label-left">非常喜欢模型A</span>
+                                <div class="likert-options">
+                                    <input type="radio" id="pref1_r1" name="final_preference_r1" value="1" required><label for="pref1_r1">1</label>
+                                    <input type="radio" id="pref2_r1" name="final_preference_r1" value="2"><label for="pref2_r1">2</label>
+                                    <input type="radio" id="pref3_r1" name="final_preference_r1" value="3"><label for="pref3_r1">3</label>
+                                    <input type="radio" id="pref4_r1" name="final_preference_r1" value="4"><label for="pref4_r1">4</label>
+                                    <input type="radio" id="pref5_r1" name="final_preference_r1" value="5"><label for="pref5_r1">5</label>
+                                    <input type="radio" id="pref6_r1" name="final_preference_r1" value="6"><label for="pref6_r1">6</label>
+                                    <input type="radio" id="pref7_r1" name="final_preference_r1" value="7"><label for="pref7_r1">7</label>
+                                </div>
+                                <span class="likert-label-right">非常喜欢模型B</span>
+                            </div>
+                        </div>
+                        <div class="justification-section">
+                            <label for="justification_r1"><h2>理由说明 (Justification)</h2></label>
+                            <textarea id="justification_r1" name="justification_r1" rows="6" placeholder="请详细说明你做出以上选择的原因..."></textarea>
+                        </div>
+                        <div class="challenge-section" style="display: none;">
+                            <label for="challenge-prompt_r1"><h2>挑战模型 (Challenge the Model)</h2></label>
+                            <p class="description">请根据偏好的模型回复，续写一句新的对话提示词来进一步测试或挑战它。</p>
+                            <textarea id="challenge-prompt_r1" name="challenge_prompt_r1" rows="4" placeholder="例如：其实我今天不开心还有另一个原因..."></textarea>
+                            <button type="button" class="action-button send-prompt-btn">发送下一句提示词</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of evaluation-rounds-container -->
 
-                    <!-- ==================== 模型 B ==================== -->
+        <!-- 加载动画 -->
+        <div id="loading-spinner" class="spinner-container" style="display: none;"><div class="spinner"></div><p>正在为您生成新的模型回复，请稍候...</p></div>
+    </main>
+
+    <!-- ==================== 模板区 (用于JS克隆) ==================== -->
+    <template id="round-template">
+        <div class="evaluation-round">
+            <div class="card">
+                <h2 class="round-title"></h2>
+                <div class="side-by-side-container">
+                    <div class="model-panel">
+                        <h3>模型 A</h3>
+                        <div class="audio-clips"></div>
+                        <p class="transcript-text" style="display:none;"></p>
+                        <div class="evaluation-questions"></div>
+                    </div>
                     <div class="model-panel">
                         <h3>模型 B</h3>
-                        <div class="audio-clips">
-                            <p class="audio-label">回复 1:</p>
-                            <audio controls src="audio/model_b/response_1.mp3">浏览器不支持</audio>
-                        </div>
-
-                        <!-- 详细评估问题 (注意 name 属性与模型A不同) -->
-                        <div class="evaluation-questions">
-                            <div class="question-group">
-                                <h4>内容人设遵循</h4>
-                                <p class="description">模型是否在内容上能够遵循人物设定？参见文档中人物详细设定介绍。</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_content_persona" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_content_persona" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_content_persona" value="3"> 完美</label>
-                                </div>
-                            </div>
-                            <div class="question-group">
-                                <h4>内容上下文遵循</h4>
-                                <p class="description">模型是否能够遵循上下文做出与上下文内容不违背的回复？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_context" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_context" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_context" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>内容理解</h4>
-                                <p class="description">模型是否能够正确理解用户表达的内容？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_understanding" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_understanding" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_understanding" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>内容满意度</h4>
-                                <p class="description">模型是否提供了用户可能需要的情感支持？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_satisfaction" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_satisfaction" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_satisfaction" value="3"> 完美</label>
-                                </div>
-                            </div>
-                            <div class="question-group">
-                                <h4>声音质量</h4>
-                                <p class="description">模型语音是否清晰可辨？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_quality" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_quality" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_quality" value="3"> 完美</label>
-                                </div>
-                            </div>
-                            <div class="question-group">
-                                <h4>语音语调</h4>
-                                <p class="description">模型语音是否符合发音标准自然的要求？</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_tone" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_tone" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_tone" value="3"> 完美</label>
-                                </div>
-                            </div>
-                             <div class="question-group">
-                                <h4>非内容人设遵循</h4>
-                                <p class="description">模型是否在非内容方面遵循了人物设定？参见文档中人物详细设定介绍。</p>
-                                <div class="radio-options">
-                                    <label><input type="radio" name="model_b_non_content_persona" value="1"> 不能</label>
-                                    <label><input type="radio" name="model_b_non_content_persona" value="2"> 还行</label>
-                                    <label><input type="radio" name="model_b_non_content_persona" value="3"> 完美</label>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="audio-clips"></div>
+                        <p class="transcript-text" style="display:none;"></p>
+                        <div class="evaluation-questions"></div>
                     </div>
                 </div>
-
-                <!-- 最终 Likert 量表 -->
-               <div class="final-rating-section">
-                    <h4>综合来看，你更喜欢哪个模型的回复？</h4>
-                    <div class="likert-scale">
-                        <span class="likert-label-left">非常喜欢模型A</span>
-                        <div class="likert-options">
-                            <input type="radio" id="pref1" name="final_preference" value="1" required><label for="pref1">1</label>
-                            <input type="radio" id="pref2" name="final_preference" value="2"><label for="pref2">2</label>
-                            <input type="radio" id="pref3" name="final_preference" value="3"><label for="pref3">3</label>
-                            <input type="radio" id="pref4" name="final_preference" value="4"><label for="pref4">4</label>
-                            <input type="radio" id="pref5" name="final_preference" value="5"><label for="pref5">5</label>
-                            <input type="radio" id="pref6" name="final_preference" value="6"><label for="pref6">6</label>
-                            <input type="radio" id="pref7" name="final_preference" value="7"><label for="pref7">7</label>
-                        </div>
-                        <span class="likert-label-right">非常喜欢模型B</span>
-                    </div>
-                </div>
-
-                <!-- Justification 输入框 (不变) -->
-                <div class="justification-section">
-                    <label for="justification"><h2>理由说明 (Justification)</h2></label>
-                    <textarea id="justification" name="justification" rows="6" placeholder="请详细说明你做出以上选择的原因..."></textarea>
-                </div>
-                
-                <!-- ==================== 新增：条件触发的挑战模型文本框 ==================== -->
-                <div id="challenge-prompt-section" class="challenge-section">
-                    <label for="challenge-prompt">
-                        <h2>挑战模型 (Challenge the Model)</h2>
-                    </label>
-                    <p class="description">
-                        你已选择了偏好的模型。请根据该模型的回复，续写一句新的对话提示词来进一步测试或挑战它。
-                    </p>
-                    <textarea id="challenge-prompt" name="challenge_prompt" rows="4" placeholder="例如：其实我今天不开心还有另一个原因..."></textarea>
-                </div>
-
-
-                 <button type="button" id="send-prompt-btn" class="action-button">发送下一句提示词</button>
-            </form>
+                <div class="form-sections"></div>
+            </div>
         </div>
-    </main>
+    </template>
+    
     <script src="script.js"></script>
 </body>
 </html>

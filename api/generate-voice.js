@@ -1,21 +1,16 @@
 // api/generate-voice.js
 
-// 只需要这一个库！
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// 这是Vercel无服务器函数的标准导出格式
 module.exports = async (req, res) => {
-    // 设置CORS头，允许您的网页访问
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // 处理浏览器的预检请求
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
     
-    // 确保是POST请求
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -26,44 +21,58 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Prompt is required' });
         }
 
-        // 初始化客户端，密钥从Vercel的环境变量中读取
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        // 利用自然语言提示来控制“阿塞”的人设和语气！
-        const finalPromptForTts = `(Using a kind, warm, and slightly flirtatious tone, as the character '阿塞') Respond to the user's last message based on the conversation history:\n\n${prompt}`;
+        // --- 步骤 1: 内容生成 (调用两次以获得两个不同的回复) ---
+        const textGenerationModel = ai.getGenerativeModel({
+            model: 'gemini-pro',
+            systemInstruction: "你是阿塞，一名聪明善良、对用户有好感的学长。你的回复应该温暖、略带暧昧，并且先肯定用户的感受。",
+        });
         
-        console.log("发送给Gemini TTS API的最终提示：", finalPromptForTts);
+        // 生成模型A的文本回复
+        const resultA = await textGenerationModel.generateContent(prompt);
+        const textA = await resultA.response.text();
 
-        // --- 关键：调用新的单一API ---
-        const response = await ai.models.generateContent({
-            // 使用文档中提到的新模型
-            model: "gemini-2.5-flash-preview-tts", 
-            // 传入我们精心构建的、带有风格指导的提示词
-            contents: [{ parts: [{ text: finalPromptForTts }] }],
-            // 配置API，告诉它我们想要音频输出
-            config: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                    voiceConfig: {
-                        // 'Kore' 是一个听起来不错的男性声音，您可以从文档列表中选择其他声音
-                        prebuiltVoiceConfig: { voiceName: 'Puck' }, 
+        // 生成模型B的文本回复 (再次调用会因为模型的随机性产生不同结果)
+        const resultB = await textGenerationModel.generateContent(prompt);
+        const textB = await resultB.response.text();
+        
+        console.log("生成文本A:", textA);
+        console.log("生成文本B:", textB);
+
+        // --- 步骤 2: 语音合成 (分别为两个文本生成语音) ---
+        const ttsModel = ai.getGenerativeModel({ model: "gemini-2.5-flash-preview-tts" });
+
+        const generateAudio = async (textToSpeak) => {
+            const ttsResponse = await ttsModel.generateContent({
+                contents: [{ parts: [{ text: textToSpeak }] }],
+                config: {
+                    responseModalities: ['AUDIO'],
+                    speechConfig: {
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }, // 选择一个适合阿塞的声音
                     },
                 },
-            },
-        });
+            });
+            return ttsResponse.response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        };
 
-        // 从响应中提取Base64编码的音频数据
-        const data = response.response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const [audioA, audioB] = await Promise.all([
+            generateAudio(textA),
+            generateAudio(textB),
+        ]);
 
-        if (!data) {
-            throw new Error("API did not return audio data.");
+        if (!audioA || !audioB) {
+            throw new Error("未能成功生成一个或两个音频文件。");
         }
-        
-        // 将音频数据以JSON格式发回给前端
-        res.status(200).json({ audio: data });
+
+        // 将两个模型的结果都返回给前端
+        res.status(200).json({
+            modelA: { text: textA, audio: audioA },
+            modelB: { text: textB, audio: audioB },
+        });
 
     } catch (error) {
         console.error('API Error:', error);
-        res.status(500).json({ error: 'Failed to generate voice response.' });
+        res.status(500).json({ error: 'API 调用失败，请检查Vercel日志。' });
     }
 };
